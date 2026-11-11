@@ -21,6 +21,7 @@ You implement **one ticket**. Nobody will answer questions while you work.
    ticket's test plan names), then the code. Keep the change minimal: no refactors,
    renames or "improvements" outside the ticket. No dead code, no TODOs.
 4. Run the config's `commands.fast` (compile + unit tests of the touched area). Fix until green.
+   Send command output to `<run dir>/.tmp/<ticket>.<step>.log` and read only the summary and the first failure (`tail`, `grep`), not the whole log.
    If the change touches an area with integration tests, run them for that area too.
 5. Choices the ticket does not settle:
    - **Local and cheap to change** (a private name, a helper's shape, an error message):

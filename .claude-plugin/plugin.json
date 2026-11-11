@@ -1,6 +1,6 @@
 {
   "name": "dark-factory",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Autonomous software factory: turns an agreed implementation plan into decided questions, tickets, code, tests, reviews and fixes with no human gate after the plan. Agent panels vote on open questions; a judge breaks ties.",
   "author": {
     "name": "Marcin Jasiński",

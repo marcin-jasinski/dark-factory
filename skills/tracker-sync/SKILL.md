@@ -9,7 +9,7 @@ Do nothing if config `tracker.github` is `false`. A failure here never stops the
 log it to the journal (`tracker-sync failed: <error>`) and go on.
 
 Use `gh` in the repository. Write bodies to a temp file in the run directory's `.tmp/`
-(gitignored by the run's `.gitignore`) and pass `--body-file`; never inline long bodies.
+(gitignored by the `<run_dir>/**/.tmp/` entry that `/dark-factory:init` adds) and pass `--body-file`; never inline long bodies.
 Never put secrets, prompts or model output that the project forbids exporting into an issue.
 
 Labels (create once with `gh label create <name> --color <hex> --force`):

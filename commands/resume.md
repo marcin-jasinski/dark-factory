@@ -9,9 +9,12 @@ Read `.claude/factory-run.json`.
 - `status: halted` → read `halt_reason` and the journal. If the user's note below answers
   the cause (for example a blocker question), write that answer as the decision record of
   the blocker question with `method: human`, set the parked tickets that it unblocks back
-  to `ready`, clear `halt_reason`, set `status: running` and `continuations: 0`.
+  to `ready`, clear `halt_reason`, set `status: running`.
 - `status: running` → continue.
 
-Then invoke the Skill `dark-factory:orchestrator` and resume from the recorded stage.
+Then invoke the Skill `dark-factory:orchestrator` and follow its "Resume" section (it
+re-binds the run to this session and resets the continuation counters in
+`.claude/factory-run.hooks.json`; without that, a run resumed in a new session would not be
+kept going by the Stop hook). Continue from the recorded stage.
 
 User note: $ARGUMENTS

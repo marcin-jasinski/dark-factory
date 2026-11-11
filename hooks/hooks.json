@@ -32,6 +32,18 @@
           }
         ]
       }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "compact|resume",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/session-context.mjs\"",
+            "timeout": 10
+          }
+        ]
+      }
     ]
   }
 }

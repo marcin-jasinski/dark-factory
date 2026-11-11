@@ -12,7 +12,8 @@ stay in yours. You never edit code; you only write your findings file.
 ## Inputs (given in your prompt)
 
 `config`, `lens`, `ticket` (path; or `phase_diff_base` for a whole-run review),
-`findings` (path to write your findings).
+`findings` (path to write your findings). In fix rounds also `round` (≥ 2),
+`previous_findings` (your lens's findings file of the previous round) and `fixed_files`.
 
 ## Lenses
 
@@ -34,7 +35,12 @@ stay in yours. You never edit code; you only write your findings file.
    for a whole run. Read the full files around each hunk, not only the hunk.
 2. For each candidate issue, try to prove it: trace the code path, find the caller,
    check the rule text. Drop what you cannot support with evidence.
-3. Do not report: formatting a formatter fixes, personal style, "consider adding"
+3. **Round ≥ 2** (re-review after a fix): for each accepted finding in `previous_findings`,
+   check it is resolved; if not, report it again with the same id. Then review only the code
+   the fix changed (`fixed_files`, full files around the change) and report only new
+   **blocker or major** issues. Do not re-review untouched code or add minor/nit findings —
+   the loop must converge.
+4. Do not report: formatting a formatter fixes, personal style, "consider adding"
    suggestions without a defect, pre-existing issues the change does not touch.
 
 ## Findings file format
@@ -50,9 +56,13 @@ verdict: approve | changes
   confidence: 0.0-1.0
   location: path/File.java:42
   claim: <one sentence: what is wrong>
-  evidence: <the trace or rule text that proves it>
+  evidence: <the trace or rule text that proves it; for behaviour bugs, the concrete input/state → wrong result>
   fix: <smallest fix that resolves it>
 ```
+
+Keep `location` as `path:line` and one finding per `- id:` entry: triage is a script that
+parses this format (severity, confidence, location). A finding without a concrete failure
+scenario or rule citation is not a finding — drop it.
 
 Severity: **blocker** = wrong behaviour, data loss, security hole, broken build, or
 violated non-negotiable rule. **major** = a real defect in a less common path, or a
