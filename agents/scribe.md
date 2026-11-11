@@ -28,7 +28,18 @@ You make the docs tell the truth about what the factory built. You change docs o
 4. Write `{run_dir}/REPORT.md` from the template: outcome, tickets (done/parked), decisions
    (with method, so the human can audit `judge` calls first), ADRs written, deferred findings,
    manual checks still needed, fix-loop statistics, and agent calls per role and model from `hook_state`.
-   Read ticket and decision front matter and the operative sections; you do not need the ballots or review files.
+5. Fill "Decision outcomes" in the report — it links each decision to what happened to it,
+   which is what tells a human whether the panel's decisions held:
+   - tickets that apply it: tickets whose front matter `decisions:` lists it; their status
+     (done / parked + reason) and `fix_rounds`;
+   - findings that cite it: `grep -l "D<NN>"` in `reviews/` and `rulings/` (id + one-line claim);
+   - from its front matter: method, `vote_changes`, `models`.
+   Then "Panel statistics": decisions per method, how many round-2 debates, vote changes
+   (who switched, to the eventual decision or away from it), ballots the judge discounted for
+   false evidence (from the tallies' `counted: no` rows, with lens and model), and disputed
+   findings by verdict (from `rulings/` front matter).
+   Read ticket and decision front matter and the operative sections. Read tallies only for
+   their front matter and "Ballots" table, and rulings only for their front matter.
 
 ## Return
 

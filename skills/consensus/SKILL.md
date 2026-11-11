@@ -9,8 +9,14 @@ Input: a question file (`questions/Q<NN>-<slug>.md` with front matter `id`, `sta
 `impact`). If you start from a bare question (from `/dark-factory:decide`), first write the
 question file yourself: question, context with file paths, known options, constraints.
 
-Paths: `ballots/Q<NN>.r<round>.<lens>.md`, `decisions/D<NN>-<slug>.md` (same `NN` as the
-question), all in the run directory. Use absolute paths in agent prompts.
+Paths: `ballots/Q<NN>.r<round>.<lens>.md`, `ballots/Q<NN>.r<round>.tally.md`,
+`decisions/D<NN>-<slug>.md` (same `NN` as the question), all in the run directory. Use
+absolute paths in agent prompts. Pass every solver and judge the `model` you spawn it with,
+so ballots, tallies and decisions record which model said what.
+
+The audit trail per question is: the question → each round's ballots → each round's tally
+(what the judge verified, discounted and eliminated — written even when it sends the
+question to round 2) → the decision. Keep all of it; it is how a human debugs the panel.
 
 Models (config `models`, see the orchestrator's "Models"): solvers by the question's
 impact — `models.solver.<impact>` (defaults: high → opus, medium/low → sonnet); the judge
@@ -20,7 +26,7 @@ cheaper panel is safe below high impact; high-impact questions get the strongest
 ## Step 1 — Panel size
 
 - `impact: low` → **fast path**: one `solver` with lens `pragmatist`, then the `judge`
-  with `allow_round_2: false`. The judge adopts the ballot unless it finds a verified hard
+  with `allow_round_2: false` and the round-1 tally path. The judge adopts the ballot unless it finds a verified hard
   objection. Method is recorded as `judge`.
 - `impact: medium | high` → full panel (below).
 
@@ -33,7 +39,8 @@ ballot path, the question path and the config path.
 ## Step 3 — Tally
 
 Spawn `judge` (mode A) with the question, the three ballot paths, `round: 1`,
-`allow_round_2: true`, the decision path, the config path and `adr_dir` from config.
+`allow_round_2: true`, the decision path, `tally: ballots/Q<NN>.r1.tally.md`, the config
+path and `adr_dir` from config.
 
 - Decided → go to Step 5.
 - `NEEDS_ROUND_2: <options>` → Step 4.
@@ -41,15 +48,16 @@ Spawn `judge` (mode A) with the question, the three ballot paths, `round: 1`,
 ## Step 4 — Round 2 (debate, once)
 
 Spawn three `solver` agents again in one message, same lenses, `round: 2`, each with
-**all** round-1 ballot paths and the surviving options. Then spawn `judge` with all six
-ballots, `round: 2`, `allow_round_2: false`. The judge now always decides (method
+**all** round-1 ballot paths, the round-1 tally and the surviving options. Then spawn
+`judge` with all six ballots, `round: 2`, `allow_round_2: false`,
+`tally: ballots/Q<NN>.r2.tally.md` and `previous_tally: ballots/Q<NN>.r1.tally.md`. The judge now always decides (method
 `debate` if a majority formed, else `judge`) or returns a blocker.
 
 ## Step 5 — Record
 
 1. Read the decision front matter. Set the question's `status: decided` and `decision: D<NN>`.
 2. `status: blocker` → set the question's `status: blocker`. The orchestrator parks what it blocks.
-3. Append one journal line: `<time> Q<NN> decided <method> -> <one-line decision>`.
+3. Append one journal line: `<time> Q<NN> decided <method> votes=<…> changes=<…> -> <one-line decision>`.
 4. Tracker sync action `decision` (posts the decision summary on the tracking issue).
 
 ## Cost discipline
