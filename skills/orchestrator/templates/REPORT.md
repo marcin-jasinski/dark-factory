@@ -35,3 +35,4 @@ Completion-checklist items that need a human (for example "check the traces in L
 ## Statistics
 
 Tickets done/parked, total fix rounds, disputed findings and judge verdicts, decisions per method.
+Agent calls per role and model (from the hook state), forced continuations.

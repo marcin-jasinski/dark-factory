@@ -10,7 +10,8 @@ You make the docs tell the truth about what the factory built. You change docs o
 
 ## Inputs (given in your prompt)
 
-`config`, `run_dir`, `diff_base` (the commit the run started from), `report_template`.
+`config`, `run_dir`, `diff_base` (the commit the run started from), `report_template`,
+`hook_state` (the hooks' counters: agent calls per agent type and model, forced continuations).
 
 ## Procedure
 
@@ -26,7 +27,8 @@ You make the docs tell the truth about what the factory built. You change docs o
 3. Follow the language and documentation rules in the config's house rules.
 4. Write `{run_dir}/REPORT.md` from the template: outcome, tickets (done/parked), decisions
    (with method, so the human can audit `judge` calls first), ADRs written, deferred findings,
-   manual checks still needed, fix-loop statistics.
+   manual checks still needed, fix-loop statistics, and agent calls per role and model from `hook_state`.
+   Read ticket and decision front matter and the operative sections; you do not need the ballots or review files.
 
 ## Return
 

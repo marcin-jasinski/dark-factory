@@ -2,7 +2,7 @@
 name: ticket-writer
 description: Dark-factory ticket writer. Turns the planner's draft breakdown plus the panel's decisions into self-contained implementation tickets with acceptance criteria, test plan and dependencies. Use after all open questions of a run are decided.
 tools: Read, Grep, Glob, Bash, Write
-model: sonnet
+model: opus
 color: cyan
 ---
 

@@ -18,10 +18,11 @@ You audit afterwards: every decision, vote and finding is a file in the reposito
   tickets        ticket-writer → tickets/*.md (self-contained, ACs, test plan, depends_on)
   build          per ticket:
                    implementer (tests + code, fast checks; escalates load-bearing questions to the panel)
-                   quality gate: tester ‖ reviewers ×3 lenses → rule-based triage → fixer → judge on disputes
+                   quality gate: tester → reviewers ×3 lenses ‖ test guard (script) → triage (script)
+                                 → fixer → judge on disputes; later rounds re-review only the fix
                    ≤ 3 rounds → commit on phase branch | park the ticket (stash or parked branch)
-  close          holistic review → scribe updates plan/roadmap/index → full gate
-                 → merge --no-ff into develop → gate again → push
+  close          holistic review → scribe updates plan/roadmap/index → merge develop into the phase
+                 branch → full gate there → merge --no-ff into develop (same tree, no re-gate) → push
 ```
 
 Everything is mirrored to GitHub Issues (one tracking issue per run, one issue per
@@ -42,17 +43,23 @@ ticket, decisions as comments). The Markdown files stay the source of truth.
 | skill | `quality-gate` | Test / review / triage / fix loop per ticket |
 | skill | `tracker-sync` | One-way mirror to GitHub Issues |
 | agent | `planner` (opus) | Scope, open questions, draft breakdown |
-| agent | `solver` (opus) | One panel ballot through one lens |
+| agent | `solver` (opus / sonnet by impact) | One panel ballot through one lens |
 | agent | `judge` (opus) | Binding decisions; rules on disputed findings |
-| agent | `ticket-writer` (sonnet) | Self-contained tickets |
+| agent | `ticket-writer` (opus) | Self-contained tickets |
 | agent | `implementer` (inherit) | One ticket, tests first, never commits |
 | agent | `tester` (sonnet) | Independent AC → test check, full gate |
-| agent | `reviewer` (opus) | One lens: correctness / standards / spec-security / holistic |
+| agent | `reviewer` (opus; standards: sonnet) | One lens: correctness / standards / spec-security / holistic |
 | agent | `fixer` (inherit) | Smallest fix, or dispute with evidence |
 | agent | `scribe` (sonnet) | Docs and `REPORT.md` |
-| hook | `keep-running` (Stop) | The run's session cannot end its turn while the run is `running` (capped) |
-| hook | `branch-guard` (PreToolUse) | No commit/merge/push/reset on protected branches, no force push, during a run |
-| hook | `claim-run` (PreToolUse) | Binds the run to the session that orchestrates it |
+| script | `quality-gate/scripts/triage.mjs` | Deterministic triage of review findings |
+| script | `quality-gate/scripts/test-guard.mjs` | Flags deleted tests, skip/focus markers and lost assertions |
+| hook | `keep-running` (Stop) | The run's session cannot end its turn while the run is `running` (total and no-progress caps) |
+| hook | `branch-guard` (PreToolUse) | No commit/merge/push/reset on protected branches, no force push, no `clean -x`/`stash --all` (they delete the run state), during a run |
+| hook | `claim-run` (PreToolUse) | Binds the run to the session that orchestrates it; counts agent calls per role and model; enforces the agent budget |
+| hook | `session-context` (SessionStart) | After a compaction, puts the orchestrator back on the run |
+
+Models are set per role in `.claude/factory.md` → `models` and passed on each spawn; the
+agent's front matter is only the fallback. `inherit` = the orchestrating session's model.
 
 ## How decisions are made
 
@@ -71,10 +78,11 @@ Panelists do not see each other in round 1, so you get three independent opinion
 
 ## Review triage
 
-Fixed: blockers with confidence ≥ 0.5; majors with confidence ≥ 0.7 or raised by two
-lenses. Everything else is recorded as a deferred finding in the ticket and the report
+Done by a script, not by the model. Fixed: blockers with confidence ≥ 0.5; majors with
+confidence ≥ 0.7 or raised at the same location by two lenses. Everything else is recorded as a deferred finding in the ticket and the report
 — not fixed (minimal implementation). The fixer may dispute a finding; the judge rules.
-Weakening, deleting or skipping a test to get green is itself a blocker.
+Weakening, deleting or skipping a test to get green is itself a blocker — detected
+mechanically by the test guard, not only by reviewers.
 
 ## Install
 
@@ -107,6 +115,10 @@ The branch guard hook still blocks protected branches in every mode.
 ## Limits you should know
 
 - Subagents cannot spawn subagents, so the orchestrator must run in the main session.
-- The Stop hook forces at most `max_continuations` (default 40) continuations per run, then halts the run.
+- The Stop hook forces at most `max_continuations` (default 40) continuations per run, and at
+  most `max_stalled_continuations` (default 5) in a row without progress; then it halts the run
+  and gives the session one turn to park and report.
+- `max_agent_calls` (default 300) is a hard budget: the agent hook denies spawns past it.
 - Tickets run one at a time in one checkout. Read-only agents (panel, reviewers) run in parallel.
-- Cost: a full-panel question is 4–7 opus calls; a ticket is about 6–15 agent calls.
+- Cost: a high-impact question is 4–7 opus calls (medium/low: sonnet panel + opus judge); a
+  ticket is about 6–15 agent calls. `REPORT.md` lists the real counts per role and model.

@@ -12,6 +12,11 @@ question file yourself: question, context with file paths, known options, constr
 Paths: `ballots/Q<NN>.r<round>.<lens>.md`, `decisions/D<NN>-<slug>.md` (same `NN` as the
 question), all in the run directory. Use absolute paths in agent prompts.
 
+Models (config `models`, see the orchestrator's "Models"): solvers by the question's
+impact — `models.solver.<impact>` (defaults: high → opus, medium/low → sonnet); the judge
+always `models.judge` (opus). The judge verifies the evidence each ballot cites, so a
+cheaper panel is safe below high impact; high-impact questions get the strongest panel.
+
 ## Step 1 — Panel size
 
 - `impact: low` → **fast path**: one `solver` with lens `pragmatist`, then the `judge`
@@ -53,3 +58,4 @@ ballots, `round: 2`, `allow_round_2: false`. The judge now always decides (metho
   final unless the judge later finds the cited source does not settle it.
 - At most `limits.parallel_agents` agents per message; queue the rest.
 - Round 2 runs at most once per question.
+- Solvers return 3 lines; act on those and the judge's 4 lines. Do not read ballots yourself.
