@@ -144,6 +144,9 @@ computer of yours switched on. What the project must give the session:
   session, `/dark-factory:resume` restores the run from the remote. A stash is lost with the
   container.
 
+For a server of your own that runs 24/7 (a VPS controlled with Remote Control), see
+[docs/vps-setup.md](docs/vps-setup.md).
+
 Start with `/dark-factory:run "<unit>"` in Auto permission mode. When the run halts on a
 blocker, answer from the phone with `/dark-factory:resume <answer>`.
 
