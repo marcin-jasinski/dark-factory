@@ -1,0 +1,17 @@
+{
+  "name": "dark-factory",
+  "owner": {
+    "name": "Marcin Jasiński",
+    "url": "https://github.com/marcin-jasinski"
+  },
+  "description": "Autonomous plan-to-merge software factory for Claude Code.",
+  "plugins": [
+    {
+      "name": "dark-factory",
+      "source": "./",
+      "description": "Plan -> decide -> ticket -> implement -> test -> review -> fix -> merge, with agent consensus instead of human approvals.",
+      "category": "engineering",
+      "keywords": ["autonomous", "orchestration", "agents", "consensus"]
+    }
+  ]
+}
