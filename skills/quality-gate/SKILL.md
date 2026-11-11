@@ -62,7 +62,10 @@ If `round` > `limits.max_fix_rounds` → return **PARK** "gate not green after N
 Spawn `fixer` with the accepted findings (the script's JSON entries) and the new test
 failures. Then:
 - `DISPUTED` items → spawn `judge` in mode B, one call per disputed item (parallel in one
-  message). `invalid` → drop. `defer` → deferred list. `valid` → stays open for the next round's fixer.
+  message), each with `ruling: <run>/rulings/<ticket>.r<round>.<lens>-<finding id>.md` and
+  `model`. The ruling files keep the claim, the rebuttal and the verdict for the audit (they
+  are outside `reviews/`, so triage never reads them).
+  `invalid` → drop. `defer` → deferred list. `valid` → stays open for the next round's fixer.
 - `NOT_FIXED` items → carry into the next round.
 
 Increment the ticket's `fix_rounds` and start the next round.

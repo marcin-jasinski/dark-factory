@@ -21,6 +21,19 @@ questions, ADRs written, parked tickets and open manual checks come before every
 
 Method counts: unanimous N · majority N · debate N · judge N. Blockers: N.
 
+## Decision outcomes
+
+What happened to each decision after it was made — the first place to look when tuning the panel.
+
+| Decision | Method | Vote changes | Models (panel / judge) | Tickets applying it (status, fix rounds) | Findings / rulings citing it |
+|---|---|---|---|---|---|
+
+## Panel statistics
+
+Decisions per method · round-2 debates N · vote changes N (toward the final decision N,
+away N) · ballots discounted for false evidence N (by lens and model) · disputed findings:
+valid N, invalid N, defer N.
+
 ## ADRs written
 
 ## Deferred findings

@@ -12,5 +12,9 @@ Question: $ARGUMENTS
    precisely, add context with file paths you find in a short search, list the options
    you can see, and the constraints from the docs.
 3. Invoke the Skill `dark-factory:consensus` for that question.
-4. Show the user the decision (one paragraph), the method, the vote, the dissent, and
-   the ADR path if one was written. Do not implement anything.
+4. Commit the question, ballots, tallies, decision and ADR (only those paths):
+   `chore(factory): decide Q<NN> <slug>`. Inside an active run, commit on the phase branch.
+   Outside a run, commit on the current branch unless it is in the config's
+   `git.protected_branches`; then leave the files uncommitted and tell the user.
+5. Show the user the decision (one paragraph), the method, the vote, vote changes in
+   round 2, the dissent, and the ADR path if one was written. Do not implement anything.

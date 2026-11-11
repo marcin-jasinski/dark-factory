@@ -76,6 +76,22 @@ agent's front matter is only the fallback. `inherit` = the orchestrating session
 
 Panelists do not see each other in round 1, so you get three independent opinions, not one opinion said three times.
 
+### Audit trail
+
+Every step of a decision is a committed file in the run directory, so the panel can be
+debugged and its prompts improved:
+
+| File | Holds |
+|---|---|
+| `questions/Q<NN>-*.md` | The question, context, options, constraints |
+| `ballots/Q<NN>.r<round>.<lens>.md` | Each panelist's scored options, choice, confidence, model; in round 2 also `previous_choice`, `changed` and what convinced it |
+| `ballots/Q<NN>.r<round>.tally.md` | The judge's tally for that round — evidence checked (confirmed / false), ballots not counted and why, options merged or eliminated, the rule applied. Written even when the round ends in a debate. |
+| `decisions/D<NN>-*.md` | The binding decision: method, votes, vote changes, models, dissent and risk to watch |
+| `rulings/<ticket>.r<round>.*.md` | Judge rulings on disputed review findings: claim, rebuttal, verdict, reason |
+| `REPORT.md` → Decision outcomes | Each decision → the tickets that applied it (done/parked, fix rounds) → findings that cite it, plus panel statistics |
+
+`/dark-factory:decide` commits its files too.
+
 ## Review triage
 
 Done by a script, not by the model. Fixed: blockers with confidence ≥ 0.5; majors with

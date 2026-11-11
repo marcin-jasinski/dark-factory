@@ -23,7 +23,8 @@ conditions in "Halting" end a run early. The Stop hook will push you to continue
   (owner session, forced continuations, agent-call counts per agent and model). Never write it,
   except as "Resume" below says. Read it for the end-of-run statistics.
 - Run directory: `<config.run_dir>/<run_id>/` (committed): `scope.md`, `breakdown.md`,
-  `questions/`, `ballots/`, `decisions/`, `tickets/`, `reviews/`, `journal.md`, `REPORT.md`;
+  `questions/`, `ballots/` (ballots and the judge's tallies), `decisions/`, `tickets/`,
+  `reviews/`, `rulings/` (judge rulings on disputed findings), `journal.md`, `REPORT.md`;
   `.tmp/` (gitignored) for gate logs and issue bodies.
 
 Agent names: use the plugin agents `dark-factory:planner`, `dark-factory:solver`,

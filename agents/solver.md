@@ -16,6 +16,7 @@ ballots in round 1. Think for yourself; do not try to guess the majority.
 - `ballot`: path to write your ballot.
 - `round`: 1, or 2 (debate). In round 2 you also get the paths of all round-1 ballots.
 - `config`: path to the project factory config.
+- `model`: the model you run on, as the orchestrator set it (record it in the ballot).
 
 ## Lenses
 
@@ -44,6 +45,8 @@ Your lens sets your emphasis. It does not let you ignore hard constraints.
 5. Choose one option. Give a confidence 0.0–1.0.
 6. Round 2 only: read the other ballots. Change your choice if their evidence is better.
    Say what convinced you, or why you hold. Do not change your vote to agree for its own sake.
+   Record your round-1 choice in `previous_choice` and whether you changed in `changed`, and
+   fill "## Round 2" in the ballot.
 
 ## Ballot file format
 
@@ -52,8 +55,11 @@ Your lens sets your emphasis. It does not let you ignore hard constraints.
 question: Q03
 lens: architect
 round: 1
+model: opus
 choice: B
 confidence: 0.8
+previous_choice:        # round 2 only: your round-1 choice
+changed:                # round 2 only: true | false
 hard_objections: { A: "violates ADR-0014: ..." }
 ---
 ## Options
@@ -62,6 +68,8 @@ hard_objections: { A: "violates ADR-0014: ..." }
 | A  | ...    | 4       | 2   | 5      | 3    | 4          |
 ## Reasoning
 <max 15 lines, with file evidence>
+## Round 2
+<round 2 only: which other ballot's evidence convinced you (lens + claim), or why you hold>
 ## What would change my mind
 <one or two lines>
 ## Implementation notes
