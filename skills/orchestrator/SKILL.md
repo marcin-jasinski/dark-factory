@@ -25,7 +25,8 @@ conditions in "Halting" end a run early. The Stop hook will push you to continue
 - Run directory: `<config.run_dir>/<run_id>/` (committed): `scope.md`, `breakdown.md`,
   `questions/`, `ballots/` (ballots and the judge's tallies), `decisions/`, `tickets/`,
   `reviews/`, `rulings/` (judge rulings on disputed findings), `journal.md`, `REPORT.md`;
-  `.tmp/` (gitignored) for gate logs and issue bodies.
+  `run-state.json` and `hook-state.json` (copies of the two state files, written at each
+  checkpoint — see "Checkpoint"); `.tmp/` (gitignored) for gate logs and issue bodies.
 
 Agent names: use the plugin agents `dark-factory:planner`, `dark-factory:solver`,
 `dark-factory:judge`, `dark-factory:ticket-writer`, `dark-factory:implementer`,
@@ -97,6 +98,45 @@ Update `stage` and `current` **before** you start each step and append one line 
 journal plus ticket front matter tell you where to continue; a step that was started but has
 no journal line is repeated.
 
+## Checkpoint
+
+Every commit you make on the phase branch is a checkpoint, so that a new session on a new
+machine (for example a cloud session after its container was reclaimed) can resume the run
+from the remote:
+
+1. **Before the commit:** copy `.claude/factory-run.json` to `<run>/run-state.json` and
+   `.claude/factory-run.hooks.json` (if present) to `<run>/hook-state.json` (`cp`; do not
+   edit the copies), and stage both with the run directory.
+2. **After the commit, if `git.push: true`:** `git push -u origin <phase_branch>`. If the
+   ticket was just parked with `park_mode: branch`, also `git push -u origin factory/parked/<ticket>`.
+   Never push a protected branch or the integration branch here. Never force-push.
+   A failed push is not a halt reason: append a journal line, continue, and push again at the
+   next checkpoint (it carries all earlier commits).
+
+Only committed and pushed work survives the loss of the machine. A ticket that was in progress
+is then repeated from its last committed state.
+
+## Restore from the remote
+
+Used when `.claude/factory-run.json` does not exist (a new clone or a new machine). Only
+when `git.push: true`.
+
+1. `git fetch origin`. Find the run: the requested unit's `phase_branch`, or else every
+   remote branch that matches the `phase_branch` pattern
+   (`git for-each-ref --format='%(refname:short)' 'refs/remotes/origin/<pattern with * for {run_id}>'`).
+2. Skip a branch that is already merged
+   (`git merge-base --is-ancestor origin/<phase_branch> origin/<integration>` succeeds) — that
+   run is done. Read `<run_dir>/<run_id>/run-state.json` on the rest
+   (`git show origin/<phase_branch>:<path>`); keep those with `status` `running` or `halted`.
+3. None → there is no run to restore. More than one → do not choose; list them to the user and stop.
+4. One → `git switch <phase_branch>` (creates the local branch that tracks the remote one; the
+   working tree must be clean outside `ignore_dirty`). Copy `<run>/run-state.json` to
+   `.claude/factory-run.json` and `<run>/hook-state.json` (if present) to
+   `.claude/factory-run.hooks.json`. Append a journal line `restored from origin/<phase_branch>`.
+   If `current.ticket` has `status: in_progress`, its uncommitted change is lost: the ticket
+   starts again at step 1 "Implement" with the same ticket file.
+5. Continue with "Resume" (the run state now exists).
+
 ## Resume
 
 Used by `/dark-factory:resume` and by Stage 0 when a run is already `running`. Read the run
@@ -111,6 +151,9 @@ recorded stage and step.
 
 1. Read `.claude/factory.md`. If it does not exist, stop and tell the user to run `/dark-factory:init`.
 2. If `.claude/factory-run.json` exists with `status: running` → do "Resume" above. Skip the rest of Stage 0.
+   If it does not exist and `git.push: true` → do "Restore from the remote" for the requested
+   unit. A restored `running` run → "Resume", skip the rest of Stage 0. A restored `halted`
+   run → stop and tell the user that `/dark-factory:resume` continues it.
 3. Resolve the unit: the argument, or if none, the first unit in the plan that is not
    complete (per config `plan` + `next_unit_hint`). Derive `run_id` (for example `phase-15`).
 4. Preflight (any failure here is reported to the user and the run does not start — this is the only point where you may talk to the user):
@@ -119,6 +162,7 @@ recorded stage and step.
    - Create `phase_branch` from the latest integration branch (`git switch -c <phase_branch> origin/<integration>` or local if `push: false`). If it already exists, switch to it.
    - Run `commands.gate` once on the clean base. Record failing test names in `baseline_failures` — they are not the factory's fault and do not block a ticket, but must not get worse.
 5. Write `factory-run.json` with `status: running` (limits from config `limits`), create the run directory, the first journal line, then sync the tracker (Skill `dark-factory:tracker-sync`, action `start`).
+   From here on, every commit on the phase branch follows "Checkpoint".
 
 ## Stage 1 — Plan
 
@@ -205,7 +249,7 @@ rely on the files. If your context grows large, the journal and ticket files are
 
 ## Halting
 
-Set `status: halted` with `halt_reason`, commit the run directory, sync the tracker
+Set `status: halted` with `halt_reason`, commit the run directory (a checkpoint: it is pushed), sync the tracker
 (action `halt`), print the summary. Halt only when:
 - preflight fails, or the baseline gate cannot run at all (build tool missing, database container cannot start);
 - every remaining ticket is parked or blocked;

@@ -128,6 +128,25 @@ A run that stops on a permission prompt is not a dark factory. Use one of:
 
 The branch guard hook still blocks protected branches in every mode.
 
+## Cloud sessions (start and steer from a phone)
+
+A run can go on in a Claude Code cloud session (claude.ai/code or the Claude app), with no
+computer of yours switched on. What the project must give the session:
+
+- **The plugin.** Commit it in `.claude/settings.json` (`extraKnownMarketplaces` with this
+  GitHub repository + `enabledPlugins`), so every cloud session loads it.
+- **The build environment.** A SessionStart hook that does what your gate needs, only when
+  `CLAUDE_CODE_REMOTE=true`: for example start `dockerd` for Testcontainers (installed in the
+  cloud image, but not started), fill the build cache, build the frontend.
+- **`git.push: true` and `park_mode: branch`.** The container is deleted when the session is
+  idle for some time. Each commit on the phase branch is a checkpoint: the run state is copied
+  into the run directory and the phase branch (and a parked branch) is pushed. In a new
+  session, `/dark-factory:resume` restores the run from the remote. A stash is lost with the
+  container.
+
+Start with `/dark-factory:run "<unit>"` in Auto permission mode. When the run halts on a
+blocker, answer from the phone with `/dark-factory:resume <answer>`.
+
 ## Limits you should know
 
 - Subagents cannot spawn subagents, so the orchestrator must run in the main session.
@@ -135,6 +154,8 @@ The branch guard hook still blocks protected branches in every mode.
   most `max_stalled_continuations` (default 5) in a row without progress; then it halts the run
   and gives the session one turn to park and report.
 - `max_agent_calls` (default 300) is a hard budget: the agent hook denies spawns past it.
+- Only committed and pushed work survives the loss of the machine: a ticket in progress is
+  started again from its last commit.
 - Tickets run one at a time in one checkout. Read-only agents (panel, reviewers) run in parallel.
 - Cost: a high-impact question is 4–7 opus calls (medium/low: sonnet panel + opus judge); a
   ticket is about 6–15 agent calls. `REPORT.md` lists the real counts per role and model.

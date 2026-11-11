@@ -5,7 +5,9 @@ argument-hint: "[optional note, e.g. the answer to a blocker question]"
 
 Read `.claude/factory-run.json`.
 
-- No file → tell the user there is no run to resume.
+- No file → follow the orchestrator's "Restore from the remote" (Skill `dark-factory:orchestrator`),
+  which recreates the file from the last checkpoint pushed to the phase branch. Nothing to
+  restore → tell the user there is no run to resume.
 - `status: halted` → read `halt_reason` and the journal. If the user's note below answers
   the cause (for example a blocker question), write that answer as the decision record of
   the blocker question with `method: human`, set the parked tickets that it unblocks back

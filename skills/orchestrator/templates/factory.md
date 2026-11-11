@@ -15,8 +15,8 @@ git:
   integration_branch: develop      # the factory merges finished runs here
   protected_branches: [master, main]
   phase_branch: "factory/{run_id}"
-  push: true                       # push the integration and phase branches at the end
-  park_mode: stash                 # stash | branch — where unfinished work of a parked ticket goes
+  push: true                       # push the phase branch at every checkpoint and the integration branch at the end
+  park_mode: stash                 # stash | branch — where unfinished work of a parked ticket goes (cloud sessions: branch, a stash is lost with the machine)
 commit_format: "feat({scope}): {ticket} {title}"
 ignore_dirty: []                   # untracked paths that do not block preflight
 
